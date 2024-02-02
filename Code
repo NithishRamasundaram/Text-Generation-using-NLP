@@ -1,0 +1,166 @@
+
+from tkinter import *
+from moviepy.editor import VideoFileClip
+from moviepy.editor import AudioFileClip
+from tkinter import filedialog
+from tkinter import messagebox
+from tkinter import ttk
+from fpdf import FPDF
+import assemblyai as aai
+import threading
+import speech_recognition as sr
+import spacy
+from collections import Counter
+from string import punctuation
+import os
+from docx import Document
+import en_core_web_sm
+#variables
+video_clip = ''
+audio_clip = ''
+#api key
+aai.settings.api_key = f"21f1e0326c544c6081112fb5d6091b89"
+#function to get video
+def get_video():
+    global video_filepath, video_clip
+    try:
+        video_filepath.set(filedialog.askopenfilename(title="Select your video file"))
+        video_clip = VideoFileClip(str(video_filepath.get()))
+    except:
+        messagebox.showerror("Error", "No video selected")
+#function to convert audio to pdf
+def audio_to_pdf():
+    global audio_clip
+    try :
+        #extract audio
+        audio_clip = video_clip.audio.write_audiofile(r"audio.wav")
+        transcriber = aai.Transcriber()
+        transcript = transcriber.transcribe("audio.wav")
+        t=transcript.text  
+        print(t)
+        # Load the English language model
+        # Load the English language model
+        nlp = spacy.load("en_core_web_sm")
+        # Define the list of part-of-speech tags you want to include
+        pos_tag = ['PROPN', 'NOUN']
+        # Process the text with spaCy
+        doc = nlp(t.lower())
+        # Initialize an empty list to store the keywords
+        re = []
+        # Iterate through tokens in the processed text
+        for token in doc:
+            # Check if the token is not a stop word and not in punctuation
+            if token.text not in nlp.Defaults.stop_words and token.text not in punctuation:
+                # Check if the token's part-of-speech tag is in the specified list
+                if token.pos_ in pos_tag:
+                    re.append(token.text)
+        o = ' - '.join(set(re))
+        print(o)
+
+
+
+        messagebox.showinfo("Message", "Conversion Successfull")
+    except :
+        messagebox.showerror( "Error", "Conversion not performed")
+    
+
+
+    d = Document()
+    # Add content to the document
+    d.add_paragraph(t)
+    d.add_paragraph(o)
+    # Save the document as a .docx file
+    d.save('document.docx')
+#function to run the script
+def run():
+    global progress_bar
+    t1 = threading.Thread(target = progress_bar.start)
+    t2 = threading.Thread(target = audio_to_pdf)
+    t2.start()
+    t1.start()
+# GUI CODE starts
+# Intializing main program settings
+root = Tk()
+root.title("Summaries Converter")
+# Variables for file paths
+video_filepath = StringVar()
+# Creating UI Frame
+UI_frame = Frame(root, width=500, height=500, relief = "raised")
+UI_frame.grid(row=0, column=0)
+convert_frame = Frame(root, width=500, height=500, relief="raised")
+convert_frame.grid(row=1, column=0)
+# Labels and buttons
+select = Label(UI_frame, text="Select Video : ", font = ("Arial", 12))
+select.grid(row=1, column=1, padx=5, pady=5, sticky=W)
+browse = Button(UI_frame, text="Browse", command = get_video, font = ("Arial", 12))
+browse.grid(row=1, column=2, padx=5, pady=5)
+video_selected = Label(UI_frame, text = "Selected video : ",  font = ("Arial", 12))
+video_selected.grid(row = 2, column = 1, padx = 5, pady = 5, sticky = E)
+video_path = Label(UI_frame, textvariable=video_filepath)
+video_path.grid(row=2, column=2, padx=2, pady=5, sticky=W)
+convert = Button(convert_frame, text="Convert", command = run,  font = ("Arial", 12))
+convert.grid(row=3, column=1, pady=5)
+progress_bar = ttk.Progressbar(root, orient=HORIZONTAL, mode='indeterminate', length=500)
+progress_bar.grid(padx=25, pady=25)
+# Calling main program
+root.mainloop()
+MoviePy - Writing audio in audio_.wav
+                                                                                                                       
+MoviePy - Done.
+Why even good programmers fail coding interviews. First reason people fail coding interviews is because they spend too much time solving very easy or very hard problems. In reality, most problems asked in the interviews are going to be of medium difficulty. Second reason people fail coding interviews is because they don't time box their practice sessions. The actual interview is usually only 45 minutes, but people spend hours solving one problem in the practice sessions. Third reason people fail coding interviews is because they don't use their interviewer enough to use your interviewer effectively. Clearly explain your answer to the interviewer in the beginning so that they can correct you. You don't want to end up in a situation where you have coded up the wrong algorithm and there are only five minutes left in the interview. Most common reason why people fail coding interviews is because they worry too much about the things that are outside their circle of control. Checking your interviewer's LinkedIn profile to see if he or she is a senior engineer or not is not going to help you, and you can't control it anyway. That's.
+reason - situation - sessions - circle - engineer - beginning - control - time - interviews - problems - practice - reality - difficulty - interviewer - hours - programmers - answer - algorithm - things - interview - problem - people - profile - minutes
+# import speech_recognition as sr
+import assemblyai as aai
+import threading
+from moviepy.editor import AudioFileClip
+
+# Function to calculate transcription accuracy
+def calculate_accuracy(transcribed_text, reference_audio_path):
+    # Recognize audio from file
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(reference_audio_path) as source:
+        audio_data = recognizer.record(source)
+
+    # Transcribe audio using Google Speech-to-Text
+    reference_transcript = recognizer.recognize_google(audio_data)
+
+    # Convert both texts to lowercase
+    transcribed_text = transcribed_text.lower()
+    reference_transcript = reference_transcript.lower()
+
+    # Split the texts into words
+    transcribed_words = transcribed_text.split()
+    reference_words = reference_transcript.split()
+
+    # Calculate the number of correct words
+    correct_words = 0
+    for transcribed_word in transcribed_words:
+        if transcribed_word in reference_words:
+            correct_words += 1
+
+    # Calculate the accuracy percentage
+    accuracy = (correct_words / len(reference_words)) * 100
+    return accuracy
+
+# Main function to run the script
+def main():
+    # Extract audio from video
+    audio_clip = AudioFileClip("audio_.wav")
+    audio_clip.write_audiofile("audio_reference.wav")
+
+    # Transcribe audio using AssemblyAI
+    transcriber = aai.Transcriber()
+    transcript = transcriber.transcribe("audio_.wav")
+    transcribed_text = transcript.text
+
+    # Calculate transcription accuracy
+    accuracy = calculate_accuracy(transcribed_text, "audio_reference.wav")
+    print("Transcription Accuracy:", accuracy, "%")
+
+if __name__ == "__main__":
+    main()
+MoviePy - Writing audio in audio_reference.wav
+                                                                                                                       
+MoviePy - Done.
+Transcription Accuracy: 92.97297297297298 %
+ 
